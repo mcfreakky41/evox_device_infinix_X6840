@@ -538,7 +538,7 @@ jobs:
           ( while true; do sleep 300; echo "[heartbeat] $(date -u) build masih jalan"; done ) &
           HB=$!
 
-          TARGETS="systemimage systemextimage productimage system_dlkmimage vbmetaimage vbmeta_systemimage"
+          TARGETS="systemimage systemextimage productimage system_dlkmimage vendor_bootimage vbmetaimage vbmeta_systemimage"
           echo "=== MULAI BUILD: $TARGETS ($(date -u)) ==="
           set -o pipefail
           if ! mka $TARGETS -j$JOBS 2>&1 | tee build.log; then
@@ -562,7 +562,7 @@ jobs:
         if: success()
         run: |
           cd ~/android/evox/out/target/product/X6840
-          required="system.img system_ext.img product.img system_dlkm.img vbmeta.img vbmeta_system.img"
+          required="system.img system_ext.img product.img system_dlkm.img vendor_boot.img vbmeta.img vbmeta_system.img"
           fail=0
           for f in $required; do
             if [ ! -s "$f" ]; then
@@ -583,6 +583,19 @@ jobs:
             fs=$(file "$f" | grep -oE 'erofs|ext4' | head -1)
             echo "    FS  : $f -> ${fs:-unknown}"
           done
+
+          # Validasi AVB chain menggunakan avbtool verify_image
+          AVBTOOL=~/android/evox/external/avb/avbtool
+          if [ -f "$AVBTOOL" ]; then
+            echo "=== Validasi AVB ==="
+            # Verifikasi vbmeta.img (chained)
+            python3 "$AVBTOOL" verify_image --image vbmeta.img || { echo "!! vbmeta.img verification GAGAL"; exit 1; }
+            # Verifikasi vbmeta_system.img (chained)
+            python3 "$AVBTOOL" verify_image --image vbmeta_system.img || { echo "!! vbmeta_system.img verification GAGAL"; exit 1; }
+            echo "=== AVB validation OK ==="
+          else
+            echo "    WARN: avbtool tidak ada, validasi AVB dilewati"
+          fi
 
           AVBTOOL=~/android/evox/external/avb/avbtool
           if [ -f "$AVBTOOL" ]; then
@@ -606,6 +619,7 @@ jobs:
             /home/runner/android/evox/out/target/product/X6840/system_ext.img
             /home/runner/android/evox/out/target/product/X6840/product.img
             /home/runner/android/evox/out/target/product/X6840/system_dlkm.img
+            /home/runner/android/evox/out/target/product/X6840/vendor_boot.img
             /home/runner/android/evox/out/target/product/X6840/vbmeta*.img
           if-no-files-found: error
           retention-days: 14

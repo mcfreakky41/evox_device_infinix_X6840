@@ -73,6 +73,8 @@ PRODUCT_BUILD_SUPER_PARTITION := true
 # ============================================================
 # fstab untuk first-stage mount HARUS berada di ramdisk (vendor_boot ramdisk)
 # Device ini pakai vendor_boot (header v4), jadi fstab masuk ke vendor_boot ramdisk
+# CATATAN: vendor_boot HARUS dibangun ulang agar fstab ini ikut terpakai.
+# Jika vendor_boot tetap stok, gunakan fstab bawaan stock.
 PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/rootdir/etc/fstab.mt6768:$(TARGET_COPY_OUT_VENDOR_RAMDISK)/first_stage_ramdisk/fstab.mt6768
 

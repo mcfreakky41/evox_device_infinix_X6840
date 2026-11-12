@@ -83,12 +83,12 @@ fastboot getvar is-userspace
 fastboot flash system      system.img
 fastboot flash system_ext  system_ext.img
 fastboot flash product     product.img
-fastboot flash vendor      vendor.img
+fastboot flash system_dlkm system_dlkm.img
+fastboot flash vendor_boot vendor_boot.img
 
 # Flash vbmeta chain (disable verity untuk custom ROM)
 fastboot --disable-verity --disable-verification flash vbmeta vbmeta.img
 fastboot flash vbmeta_system vbmeta_system.img
-fastboot flash vbmeta_vendor vbmeta_vendor.img
 ```
 
 ### 3. Wipe Data

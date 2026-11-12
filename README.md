@@ -97,7 +97,7 @@ bash /tmp/x6840-tree/scripts/fetch-blobs.sh vendor/infinix/X6840/proprietary
 # 4. Build (image-only, cukup untuk flashing system/system_ext/product/vendor/vbmeta)
 source build/envsetup.sh
 lunch evolution_X6840-bp4a-userdebug
-mka systemimage systemextimage productimage vendorimage vbmetaimage vbmeta_systemimage vbmeta_vendorimage -j$(nproc --all)
+mka systemimage systemextimage productimage system_dlkmimage vendor_bootimage vbmetaimage vbmeta_systemimage -j$(nproc --all)
 ```
 
 ---
@@ -118,10 +118,10 @@ fastboot getvar is-userspace    # harus: yes (fastbootd)
 fastboot flash system      system.img
 fastboot flash system_ext  system_ext.img
 fastboot flash product     product.img
-fastboot flash vendor      vendor.img
+fastboot flash system_dlkm system_dlkm.img
+fastboot flash vendor_boot vendor_boot.img
 fastboot --disable-verity --disable-verification flash vbmeta vbmeta.img
 fastboot flash vbmeta_system vbmeta_system.img
-fastboot flash vbmeta_vendor vbmeta_vendor.img
 fastboot erase userdata
 fastboot reboot
 ```
@@ -129,7 +129,10 @@ fastboot reboot
 ### Yang Tidak Boleh Diflash
 
 ❌ **Jangan flash `super.img`** — build ini tidak membuatnya  
-❌ `boot`, `vendor_boot`, `init_boot`, `dtbo` tetap stok (kernel prebuilt hanya untuk build)
+❌ `boot`, `init_boot`, `dtbo` tetap stok (kernel prebuilt hanya untuk build)  
+❌ `vendor_boot` dibangun ulang (karena fstab custom), FLASH vendor_boot.img dari build  
+❌ `vendor`, `odm`, `vendor_dlkm`, `odm_dlkm` tetap stok (AVB vendor tidak dibangun ulang)  
+❌ `vbmeta_vendor` tidak dibangun (vendor tetap pakai VBMeta stok)
 
 ---
 

@@ -1,17 +1,17 @@
 # Copyright (C) 2026 The LineageOS Project
 # SPDX-License-Identifier: Apache-2.0
 #
-# Infinix Smart 20 (X6840) — mt6768 fstab (EROF build)
+# Infinix Smart 20 (X6840) — mt6768 fstab (EROFS build)
 # Based on stock /vendor/etc/fstab.mt6768
 
 # --- Logical (dynamic) partitions in super ---
 system /system erofs ro wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
 system_ext /system_ext erofs ro wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
-vendor /vendor erofs ro wait,slotselect,avb=vbmeta_vendor,logical,first_stage_mount
+vendor /vendor erofs ro wait,slotselect,logical,first_stage_mount
 product /product erofs ro wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
-odm /odm erofs ro wait,slotselect,avb=vbmeta_vendor,logical,first_stage_mount
-vendor_dlkm /vendor_dlkm erofs ro wait,slotselect,avb=vbmeta_vendor,logical,first_stage_mount
-odm_dlkm /odm_dlkm erofs ro wait,slotselect,avb=vbmeta_vendor,logical,first_stage_mount
+odm /odm erofs ro wait,slotselect,logical,first_stage_mount
+vendor_dlkm /vendor_dlkm erofs ro wait,slotselect,logical,first_stage_mount
+odm_dlkm /odm_dlkm erofs ro wait,slotselect,logical,first_stage_mount
 system_dlkm /system_dlkm erofs ro wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
 
 # --- Transsion logical partitions (super) ---
