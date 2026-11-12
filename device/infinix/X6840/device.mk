@@ -10,8 +10,10 @@ DEVICE_PATH := device/infinix/X6840
 # API & Platform
 # ============================================================
 # Target ROM = Android 16 (Evolution X branch bka, API 36)
-# Vendor stok device ini masih Android 15 (API 35), tapi A16 compatible
-PRODUCT_SHIPPING_API_LEVEL := 36
+# Vendor stok device ini masih Android 15 (API 35)
+# PRODUCT_SHIPPING_API_LEVEL = API level saat perangkat PERTAMA kali diluncurkan komersial
+# BUKAN API level ROM yang dibangun. Periksa: adb shell getprop ro.product.first_api_level
+PRODUCT_SHIPPING_API_LEVEL := 35
 
 # ============================================================
 # Platform Properties

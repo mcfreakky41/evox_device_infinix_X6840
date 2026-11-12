@@ -106,8 +106,13 @@ if [ "${SKIP_BLOB_CHECK:-0}" != "1" ]; then
     missing=0
     for p in "${refs[@]}"; do
         [ -n "$p" ] || continue
-        if [ ! -e "${DEST}/${p}" ]; then
-            echo "   MISSING: ${p}"
+
+        # refs dari X6840-vendor.mk punya prefix "proprietary/"
+        # DEST sudah include "proprietary/", jadi strip prefix
+        rel="${p#proprietary/}"
+
+        if [ ! -e "${DEST}/${rel}" ]; then
+            echo "   MISSING: ${rel}"
             missing=$((missing + 1))
         fi
     done

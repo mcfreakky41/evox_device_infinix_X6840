@@ -17,7 +17,7 @@
 
 | Spesifikasi | Nilai |
 |-------------|-------|
-| **Model** | Infinix Smart 20 (X6840 / X6840B) |
+| **Model** | Infinix Smart 20 (X6840) |
 | **SoC** | MediaTek Helio G81 Ultimate (**mt6768**) |
 | **Kernel** | 6.6.x (prebuilt dari dump stok) |
 | **Target Android** | **16** (Evolution X `bka`) |
@@ -41,7 +41,7 @@ device/infinix/X6840/        # Device tree utama
 ├── vendorsetup.sh           # Lunch combo setup
 ├── prebuilt/                # Prebuilt kernel (Image)
 ├── rootdir/                 # Root filesystems, fstab
-│   └── etc/fstab.mt6768     # Filesystem table (EROF + AVB fixes)
+│   └── etc/fstab.mt6768     # Filesystem table (EROFS + AVB fixes)
 ├── sepolicy/                # SELinux policies
 │   └── vendor/mtk.te        # MediaTek vendor SELinux
 vendor/infinix/X6840/        # Vendor tree

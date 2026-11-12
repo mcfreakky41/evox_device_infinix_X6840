@@ -15,13 +15,14 @@ odm_dlkm /odm_dlkm erofs ro wait,slotselect,avb=vbmeta_vendor,logical,first_stag
 system_dlkm /system_dlkm erofs ro wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
 
 # --- Transsion logical partitions (super) ---
-tr_region /tr_region erofs ro wait,slotselect,logical,first_stage_mount,nofail
-tr_company /tr_company erofs ro wait,slotselect,logical,first_stage_mount,nofail
-tr_carrier /tr_carrier erofs ro wait,slotselect,logical,first_stage_mount,nofail
-tr_product /tr_product erofs ro wait,slotselect,logical,first_stage_mount,nofail
-tr_preload /tr_preload erofs ro wait,slotselect,logical,first_stage_mount,nofail
-tr_overlayfs /tr_overlayfs erofs ro wait,slotselect,logical,first_stage_mount,nofail
-tr_manifest /mnt/vendor/tr_manifest erofs ro wait,slotselect,logical,first_stage_mount,nofail
+# Filesystem ini mengikuti stock (ext4). JANGAN diubah ke EROFS tanpa verifikasi stock.
+tr_region /tr_region ext4 ro wait,slotselect,logical,first_stage_mount,nofail
+tr_company /tr_company ext4 ro wait,slotselect,logical,first_stage_mount,nofail
+tr_carrier /tr_carrier ext4 ro wait,slotselect,logical,first_stage_mount,nofail
+tr_product /tr_product ext4 ro wait,slotselect,logical,first_stage_mount,nofail
+tr_preload /tr_preload ext4 ro wait,slotselect,logical,first_stage_mount,nofail
+tr_overlayfs /tr_overlayfs ext4 ro wait,slotselect,logical,first_stage_mount,nofail
+tr_manifest /mnt/vendor/tr_manifest ext4 ro wait,slotselect,logical,first_stage_mount,nofail
 
 # --- Metadata & userdata ---
 /dev/block/by-name/metadata /metadata f2fs noatime,nosuid,nodev,discard wait,check,formattable,first_stage_mount

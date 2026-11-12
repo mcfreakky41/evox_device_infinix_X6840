@@ -20,14 +20,17 @@
 Lakukan **SEBELUM** reboot ke fastboot:
 
 ```bash
-# 1. Cek slot aktif
-fastboot getvar current-slot
-# Output: current-slot: a (atau b)
-# Simpan nilai ini sebagai SLOT
+# 1. Cek slot aktif (saat Android masih berjalan)
+SLOT_SUFFIX=$(adb shell getprop ro.boot.slot_suffix)
+# Output: _a atau _b
+echo "Slot aktif: $SLOT_SUFFIX"
+
+# Atau jika sudah di fastboot:
+# fastboot getvar current-slot
 
 # 2. Backup partisi penting ke internal storage
-# Ganti _a dengan _b jika slot aktif adalah b
-SLOT="_a"  # atau "_b" sesuai output di atas
+# Ganti _a dengan _b sesuai SLOT_SUFFIX di atas
+SLOT="$SLOT_SUFFIX"
 
 adb shell su -c "dd if=/dev/block/by-name/boot${SLOT} of=/sdcard/boot${SLOT}.img"
 adb shell su -c "dd if=/dev/block/by-name/init_boot${SLOT} of=/sdcard/init_boot${SLOT}.img"
@@ -37,10 +40,11 @@ adb shell su -c "dd if=/dev/block/by-name/vbmeta${SLOT} of=/sdcard/vbmeta${SLOT}
 adb shell su -c "dd if=/dev/block/by-name/vbmeta_system${SLOT} of=/sdcard/vbmeta_system${SLOT}.img"
 adb shell su -c "dd if=/dev/block/by-name/vbmeta_vendor${SLOT} of=/sdcard/vbmeta_vendor${SLOT}.img"
 
-# 3. Backup super partitions (opsional tapi direkomendasikan - butuh ruang ~9GB)
+# 3. Backup super partition (WAJIB - butuh ruang ~9GB di internal storage)
+# Proses ini akan memakan waktu beberapa menit
 adb shell su -c "dd if=/dev/block/by-name/super of=/sdcard/super.img"
 
-# 4. Pull ke PC
+# 4. Pull ke PC (SEBELUM wipe data!)
 adb pull /sdcard/boot${SLOT}.img .
 adb pull /sdcard/init_boot${SLOT}.img .
 adb pull /sdcard/vendor_boot${SLOT}.img .
@@ -48,13 +52,14 @@ adb pull /sdcard/dtbo${SLOT}.img .
 adb pull /sdcard/vbmeta${SLOT}.img .
 adb pull /sdcard/vbmeta_system${SLOT}.img .
 adb pull /sdcard/vbmeta_vendor${SLOT}.img .
-# adb pull /sdcard/super.img .  # opsional, file besar
+adb pull /sdcard/super.img .  # WAJIB - simpan di PC yang aman
 
 # 5. Backup data pribadi (foto, kontak, dll)
 # Gunakan Google Backup, Swift Backup, atau manual copy ke PC
 ```
 
 > **Catatan:** Semua perintah backup memerlukan akses root (`su`). Pastikan Magisk/KernelSU sudah terinstall dan berfungsi.
+> **PENTING:** `super.img` WAJIB di-pull ke PC SEBELUM `fastboot erase userdata`, karena file di `/sdcard` akan terhapus saat wipe.
 
 ---
 
@@ -110,7 +115,7 @@ Jika bootloop atau error, restore backup stok:
 adb reboot fastboot  # atau dari mati: power + vol up
 
 # Restore partisi kritis (ganti _a/_b sesuai slot backup)
-SLOT="_a"
+SLOT="_a"  # atau "_b" sesuai backup
 
 fastboot flash boot      boot${SLOT}.img
 fastboot flash init_boot init_boot${SLOT}.img
@@ -120,8 +125,9 @@ fastboot flash vbmeta    vbmeta${SLOT}.img
 fastboot flash vbmeta_system vbmeta_system${SLOT}.img
 fastboot flash vbmeta_vendor vbmeta_vendor${SLOT}.img
 
-# Opsional: restore super.img (butuh waktu lama, ~9GB)
-# fastboot flash super super.img
+# WAJIB: restore super.img untuk partisi dinamis (system, system_ext, product, vendor, dll)
+# Proses ini butuh waktu lama (~9GB)
+fastboot flash super super.img
 
 # Wipe data
 fastboot erase userdata

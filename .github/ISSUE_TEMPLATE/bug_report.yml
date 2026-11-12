@@ -66,9 +66,9 @@ body:
       options:
         - label: Sudah coba clean build (hapus out/ dan rebuild)
           required: false
-        - slot aktif sudah dicek (fastboot getvar current-slot)
+        - label: Slot aktif sudah dicek (fastboot getvar current-slot)
           required: false
-        - backup partisi stok sudah dilakukan
+        - label: Backup partisi stok sudah dilakukan
           required: false
-        - wipe data (fastboot erase userdata) sudah dilakukan sebelum boot
+        - label: Wipe data (fastboot erase userdata) sudah dilakukan sebelum boot
           required: false

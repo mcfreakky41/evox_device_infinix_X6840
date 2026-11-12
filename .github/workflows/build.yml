@@ -538,7 +538,7 @@ jobs:
           ( while true; do sleep 300; echo "[heartbeat] $(date -u) build masih jalan"; done ) &
           HB=$!
 
-          TARGETS="systemimage systemextimage productimage vendorimage vbmetaimage vbmeta_systemimage vbmeta_vendorimage"
+          TARGETS="systemimage systemextimage productimage system_dlkmimage vbmetaimage vbmeta_systemimage"
           echo "=== MULAI BUILD: $TARGETS ($(date -u)) ==="
           set -o pipefail
           if ! mka $TARGETS -j$JOBS 2>&1 | tee build.log; then
@@ -562,7 +562,7 @@ jobs:
         if: success()
         run: |
           cd ~/android/evox/out/target/product/X6840
-          required="system.img system_ext.img product.img vendor.img vbmeta.img vbmeta_system.img vbmeta_vendor.img"
+          required="system.img system_ext.img product.img system_dlkm.img vbmeta.img vbmeta_system.img"
           fail=0
           for f in $required; do
             if [ ! -s "$f" ]; then
@@ -579,7 +579,7 @@ jobs:
           fi
 
           # Validasi filesystem
-          for f in system.img system_ext.img product.img vendor.img; do
+          for f in system.img system_ext.img product.img system_dlkm.img; do
             fs=$(file "$f" | grep -oE 'erofs|ext4' | head -1)
             echo "    FS  : $f -> ${fs:-unknown}"
           done
@@ -605,7 +605,7 @@ jobs:
             /home/runner/android/evox/out/target/product/X6840/system.img
             /home/runner/android/evox/out/target/product/X6840/system_ext.img
             /home/runner/android/evox/out/target/product/X6840/product.img
-            /home/runner/android/evox/out/target/product/X6840/vendor.img
+            /home/runner/android/evox/out/target/product/X6840/system_dlkm.img
             /home/runner/android/evox/out/target/product/X6840/vbmeta*.img
           if-no-files-found: error
           retention-days: 14
