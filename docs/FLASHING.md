@@ -11,6 +11,7 @@
 - **Baterai** minimal 50% (disarankan 80%+)
 - **OEM Unlock** sudah aktif di Developer Options
 - **Bootloader** sudah unlocked
+- **Root access** (Magisk/KernelSU) untuk backup partisi
 
 ---
 
@@ -19,29 +20,41 @@
 Lakukan **SEBELUM** reboot ke fastboot:
 
 ```bash
-# 1. Backup partisi penting ke PC
-adb shell su -c "dd if=/dev/block/by-name/boot_a of=/sdcard/boot_a.img"
-adb shell su -c "dd if=/dev/block/by-name/init_boot_a of=/sdcard/init_boot_a.img"
-adb shell su -c "dd if=/dev/block/by-name/vendor_boot_a of=/sdcard/vendor_boot_a.img"
-adb shell su -c "dd if=/dev/block/by-name/dtbo_a of=/sdcard/dtbo_a.img"
-adb shell su -c "dd if=/dev/block/by-name/vbmeta_a of=/sdcard/vbmeta_a.img"
-adb shell su -c "dd if=/dev/block/by-name/vbmeta_system_a of=/sdcard/vbmeta_system_a.img"
-adb shell su -c "dd if=/dev/block/by-name/vbmeta_vendor_a of=/sdcard/vbmeta_vendor_a.img"
+# 1. Cek slot aktif
+fastboot getvar current-slot
+# Output: current-slot: a (atau b)
+# Simpan nilai ini sebagai SLOT
 
-# 2. Pull ke PC
-adb pull /sdcard/boot_a.img .
-adb pull /sdcard/init_boot_a.img .
-adb pull /sdcard/vendor_boot_a.img .
-adb pull /sdcard/dtbo_a.img .
-adb pull /sdcard/vbmeta_a.img .
-adb pull /sdcard/vbmeta_system_a.img .
-adb pull /sdcard/vbmeta_vendor_a.img .
+# 2. Backup partisi penting ke internal storage
+# Ganti _a dengan _b jika slot aktif adalah b
+SLOT="_a"  # atau "_b" sesuai output di atas
 
-# 3. Backup data pribadi (foto, kontak, dll)
+adb shell su -c "dd if=/dev/block/by-name/boot${SLOT} of=/sdcard/boot${SLOT}.img"
+adb shell su -c "dd if=/dev/block/by-name/init_boot${SLOT} of=/sdcard/init_boot${SLOT}.img"
+adb shell su -c "dd if=/dev/block/by-name/vendor_boot${SLOT} of=/sdcard/vendor_boot${SLOT}.img"
+adb shell su -c "dd if=/dev/block/by-name/dtbo${SLOT} of=/sdcard/dtbo${SLOT}.img"
+adb shell su -c "dd if=/dev/block/by-name/vbmeta${SLOT} of=/sdcard/vbmeta${SLOT}.img"
+adb shell su -c "dd if=/dev/block/by-name/vbmeta_system${SLOT} of=/sdcard/vbmeta_system${SLOT}.img"
+adb shell su -c "dd if=/dev/block/by-name/vbmeta_vendor${SLOT} of=/sdcard/vbmeta_vendor${SLOT}.img"
+
+# 3. Backup super partitions (opsional tapi direkomendasikan - butuh ruang ~9GB)
+adb shell su -c "dd if=/dev/block/by-name/super of=/sdcard/super.img"
+
+# 4. Pull ke PC
+adb pull /sdcard/boot${SLOT}.img .
+adb pull /sdcard/init_boot${SLOT}.img .
+adb pull /sdcard/vendor_boot${SLOT}.img .
+adb pull /sdcard/dtbo${SLOT}.img .
+adb pull /sdcard/vbmeta${SLOT}.img .
+adb pull /sdcard/vbmeta_system${SLOT}.img .
+adb pull /sdcard/vbmeta_vendor${SLOT}.img .
+# adb pull /sdcard/super.img .  # opsional, file besar
+
+# 5. Backup data pribadi (foto, kontak, dll)
 # Gunakan Google Backup, Swift Backup, atau manual copy ke PC
 ```
 
-> **Catatan:** Slot aktif saat ini adalah `_a` (verifikasi: `fastboot getvar current-slot`)
+> **Catatan:** Semua perintah backup memerlukan akses root (`su`). Pastikan Magisk/KernelSU sudah terinstall dan berfungsi.
 
 ---
 
@@ -61,13 +74,16 @@ fastboot getvar is-userspace
 ### 2. Flash Image
 
 ```bash
-# Flash partisi sistem (image-only build)
+# Flash partisi sistem (image-only build dengan EROFS)
 fastboot flash system      system.img
 fastboot flash system_ext  system_ext.img
 fastboot flash product     product.img
+fastboot flash vendor      vendor.img
 
-# Flash vbmeta (disable verity untuk custom ROM)
+# Flash vbmeta chain (disable verity untuk custom ROM)
 fastboot --disable-verity --disable-verification flash vbmeta vbmeta.img
+fastboot flash vbmeta_system vbmeta_system.img
+fastboot flash vbmeta_vendor vbmeta_vendor.img
 ```
 
 ### 3. Wipe Data
@@ -93,14 +109,19 @@ Jika bootloop atau error, restore backup stok:
 # Masuk fastbootd
 adb reboot fastboot  # atau dari mati: power + vol up
 
-# Restore partisi kritis
-fastboot flash boot      boot_a.img
-fastboot flash init_boot init_boot_a.img
-fastboot flash vendor_boot vendor_boot_a.img
-fastboot flash dtbo      dtbo_a.img
-fastboot flash vbmeta    vbmeta_a.img
-fastboot flash vbmeta_system vbmeta_system_a.img
-fastboot flash vbmeta_vendor vbmeta_vendor_a.img
+# Restore partisi kritis (ganti _a/_b sesuai slot backup)
+SLOT="_a"
+
+fastboot flash boot      boot${SLOT}.img
+fastboot flash init_boot init_boot${SLOT}.img
+fastboot flash vendor_boot vendor_boot${SLOT}.img
+fastboot flash dtbo      dtbo${SLOT}.img
+fastboot flash vbmeta    vbmeta${SLOT}.img
+fastboot flash vbmeta_system vbmeta_system${SLOT}.img
+fastboot flash vbmeta_vendor vbmeta_vendor${SLOT}.img
+
+# Opsional: restore super.img (butuh waktu lama, ~9GB)
+# fastboot flash super super.img
 
 # Wipe data
 fastboot erase userdata
@@ -114,10 +135,8 @@ fastboot reboot
 
 | Partisi | Alasan |
 |---------|--------|
-| `super.img` | Build ini **tidak membuat** super.img. Flash-nya akan *brick* perangkat. |
-| `boot`, `vendor_boot`, `init_boot`, `dtbo` | Tetap gunakan stok. Kernel prebuilt kita hanya untuk build, tidak untuk flash. |
-| `vendor`, `odm`, `vendor_dlkm`, `odm_dlkm` | Vendor blobs dibangun ulang tapi **belum tervalidasi** di perangkat. Tetap pakai stok. |
-| `vbmeta_system.img`, `vbmeta_vendor.img` | Hanya untuk inspeksi. Vendor stok sudah punya vbmeta sendiri. |
+| `boot`, `init_boot`, `vendor_boot`, `dtbo` | Tetap gunakan stok. Kernel prebuilt kita hanya untuk build, bukan untuk flash. |
+| `super.img` | Build ini **tidak membuat** super.img. Flash-nya akan *brick* perangkat. Partisi logis di-flash individual. |
 
 ---
 
@@ -140,7 +159,7 @@ fastboot erase cache  # Error "Partition doesn't exist" = OK, lanjut
 
 ### Bootloop setelah flash
 1. Pastikan `fastboot erase userdata` sudah dijalankan
-2. Coba flash ulang `vbmeta.img` dengan `--disable-verity --disable-verification`
+2. Coba flash ulang semua vbmeta dengan `--disable-verity --disable-verification`
 3. Restore backup stok (lihat bagian Rollback)
 
 ### "Remote: Flash Write Failure"
@@ -151,11 +170,12 @@ fastboot erase cache  # Error "Partition doesn't exist" = OK, lanjut
 
 ## 📝 Catatan Penting
 
-1. **Slot A/B**: Device ini pakai Virtual A/B. Slot aktif = `_a`. Flash ke slot yang aktif.
-2. **Dynamic Partitions**: `system`, `system_ext`, `product` adalah partisi logis di dalam `super`. Flash otomatis resize.
-3. **AVB/VBMeta**: Custom ROM ditandatangani test key. Harus disable verity saat flash vbmeta.
-4. **Vendor Stok**: Vendor/ODM/DLKM tetap stok. Jangan diganti kecuali sudah tervalidasi.
-5. **GSI vs Device-Specific**: Build ini device-specific (bukan GSI). Flash partisi logis, bukan system.img GSI.
+1. **Slot A/B**: Device ini pakai Virtual A/B. Slot aktif = `_a` atau `_b`. Flash ke slot yang aktif (`fastboot getvar current-slot`).
+2. **Dynamic Partitions**: `system`, `system_ext`, `product`, `vendor` adalah partisi logis di dalam `super`. Flash otomatis resize.
+3. **Filesystem EROFS**: Build ini menggunakan EROFS (bukan ext4) sesuai stock firmware. Fastboot otomatis handle.
+4. **AVB/VBMeta Chain**: Custom ROM ditandatangani test key. Harus disable verity saat flash vbmeta. Flash juga vbmeta_system & vbmeta_vendor.
+5. **Vendor Stok**: Build ini mem-build vendor.img baru (dari blob stock). Jika bootloop, coba flash vendor stock.
+6. **GSI vs Device-Specific**: Build ini device-specific (bukan GSI). Flash partisi logis individual.
 
 ---
 

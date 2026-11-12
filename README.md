@@ -41,7 +41,7 @@ device/infinix/X6840/        # Device tree utama
 ├── vendorsetup.sh           # Lunch combo setup
 ├── prebuilt/                # Prebuilt kernel (Image)
 ├── rootdir/                 # Root filesystems, fstab
-│   └── etc/fstab.mt6768     # Filesystem table (custom AVB fixes)
+│   └── etc/fstab.mt6768     # Filesystem table (EROF + AVB fixes)
 ├── sepolicy/                # SELinux policies
 │   └── vendor/mtk.te        # MediaTek vendor SELinux
 vendor/infinix/X6840/        # Vendor tree
@@ -49,8 +49,10 @@ vendor/infinix/X6840/        # Vendor tree
 └── proprietary/             # Symlink placeholder (blobs diunduh terpisah)
 .github/workflows/           # CI/CD
 ├── build.yml                # GitHub Actions workflow
+scripts/                     # Utilitas build
+├── fetch-blobs.sh           # Fetch vendor blobs (local build)
 docs/                        # Dokumentasi
-├── FLASHING.md              # Panduan flash ROM
+├── FLASHING.md              # Panduan flash ROM lengkap
 ```
 
 > **Catatan:** Blob vendor tidak disimpan di git (ratusan MB). Diunduh otomatis via Release `blobs-v1` dari repo PixelOS device tree (device yang sama).
@@ -73,7 +75,7 @@ Atau lewat UI:
 3. Pilih `evox_branch` (default: `bka`) dan `build_type` (userdebug / user / eng)
 4. Klik **Run workflow**
 
-> **💾 Catatan Disk:** Workflow otomatis membebaskan disk sebelum sync, membuang project x86/emulator/test yang tidak dipakai build ARM64, menghapus `.repo` setelah sync, dan membangun **image-only** (`systemimage systemextimage productimage vbmetaimage`) — bukan `bacon`. Ini mencegah error `No space left on device` pada runner 145 GB.
+> **💾 Catatan Disk:** Workflow otomatis membebaskan disk sebelum sync, membuang project x86/emulator/test yang tidak dipakai build ARM64, menghapus `.repo` setelah sync, dan membangun **image-only** (`systemimage systemextimage productimage vendorimage vbmetaimage vbmeta_systemimage vbmeta_vendorimage`) — bukan `bacon`. Ini mencegah error `No space left on device` pada runner 145 GB.
 
 ### Lokal (Tidak Disarankan untuk Spec Rendah)
 
@@ -90,12 +92,12 @@ cp -r /tmp/x6840-tree/device/infinix/X6840 device/infinix/X6840
 cp -r /tmp/x6840-tree/vendor/infinix/X6840 vendor/infinix/X6840
 
 # 3. Fetch + verifikasi vendor blobs (wajib cocok dengan SHA256SUMS)
-# Menggunakan script fetch-blobs.sh yang di-include di workflow
+bash /tmp/x6840-tree/scripts/fetch-blobs.sh vendor/infinix/X6840/proprietary
 
-# 4. Build (image-only, cukup untuk flashing system/system_ext/product/vbmeta)
+# 4. Build (image-only, cukup untuk flashing system/system_ext/product/vendor/vbmeta)
 source build/envsetup.sh
 lunch evolution_X6840-bp4a-userdebug
-mka systemimage systemextimage productimage vbmetaimage -j$(nproc --all)
+mka systemimage systemextimage productimage vendorimage vbmetaimage vbmeta_systemimage vbmeta_vendorimage -j$(nproc --all)
 ```
 
 ---
@@ -113,18 +115,21 @@ mka systemimage systemextimage productimage vbmetaimage -j$(nproc --all)
 adb reboot fastboot
 fastboot getvar is-userspace    # harus: yes (fastbootd)
 
-fastboot flash system      <system.img>
-fastboot flash system_ext  <system_ext.img>
-fastboot flash product     <product.img>
-fastboot --disable-verity --disable-verification flash vbmeta <vbmeta.img>
+fastboot flash system      system.img
+fastboot flash system_ext  system_ext.img
+fastboot flash product     product.img
+fastboot flash vendor      vendor.img
+fastboot --disable-verity --disable-verification flash vbmeta vbmeta.img
+fastboot flash vbmeta_system vbmeta_system.img
+fastboot flash vbmeta_vendor vbmeta_vendor.img
+fastboot erase userdata
 fastboot reboot
 ```
 
 ### Yang Tidak Boleh Diflash
 
-❌ **Jangan flash `super.img`** — build ini tidak membuatnya, dan `vendor.img` hasil rebuild belum tervalidasi  
-❌ `boot`, `vendor_boot`, `init_boot`, `dtbo`, `vendor`, `odm`, `*_dlkm` tetap stok  
-❌ `vbmeta_system.img` / `vbmeta_vendor.img` hanya untuk inspeksi pada prosedur normal (vendor tetap stok)
+❌ **Jangan flash `super.img`** — build ini tidak membuatnya  
+❌ `boot`, `vendor_boot`, `init_boot`, `dtbo` tetap stok (kernel prebuilt hanya untuk build)
 
 ---
 
@@ -134,6 +139,7 @@ fastboot reboot
 |------|-----------|
 | `README.md` | Panduan utama project |
 | `docs/FLASHING.md` | Panduan flash ROM lengkap |
+| `scripts/fetch-blobs.sh` | Script fetch vendor blobs (build lokal) |
 
 ---
 

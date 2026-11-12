@@ -7,6 +7,8 @@ on:
         description: "Evolution X branch"
         required: true
         default: "bka"
+        type: choice
+        options: ["bka"]
       build_type:
         description: "Build type"
         required: true
@@ -466,15 +468,17 @@ jobs:
             fi
           done
 
-          if curl -fsSL --retry 3 -o "${TMP}/SHA256SUMS" "${BASE_URL}/SHA256SUMS" 2>/dev/null; then
-            echo ">> Verifikasi SHA256"
-            for name in "${ARCHIVES[@]}"; do
-              grep -qE "[[:space:]]\*?${name}$" "${TMP}/SHA256SUMS" || { echo "!! SHA256SUMS tidak memuat ${name}"; exit 1; }
-            done
-            ( cd "$TMP" && sha256sum -c --ignore-missing SHA256SUMS ) || { echo "!! Checksum blob TIDAK cocok"; exit 1; }
-          else
-            echo "!! PERINGATAN: SHA256SUMS tidak ada di release ${BLOBS_TAG}"
+          # WAJIB: verifikasi SHA256SUMS
+          if ! curl -fsSL --retry 3 -o "${TMP}/SHA256SUMS" "${BASE_URL}/SHA256SUMS" 2>/dev/null; then
+            echo "!! ERROR: SHA256SUMS tidak ditemukan di release ${BLOBS_TAG}"
+            echo "   Build dihentikan untuk keamanan integritas blob"
+            exit 1
           fi
+          echo ">> Verifikasi SHA256"
+          for name in "${ARCHIVES[@]}"; do
+            grep -qE "[[:space:]]\*?${name}$" "${TMP}/SHA256SUMS" || { echo "!! SHA256SUMS tidak memuat ${name}"; exit 1; }
+          done
+          ( cd "$TMP" && sha256sum -c --ignore-missing SHA256SUMS ) || { echo "!! Checksum blob TIDAK cocok"; exit 1; }
 
           for name in "${ARCHIVES[@]}"; do
             TARLIST="${TMP}/${name}.list"
@@ -534,7 +538,7 @@ jobs:
           ( while true; do sleep 300; echo "[heartbeat] $(date -u) build masih jalan"; done ) &
           HB=$!
 
-          TARGETS="systemimage systemextimage productimage vbmetaimage"
+          TARGETS="systemimage systemextimage productimage vendorimage vbmetaimage vbmeta_systemimage vbmeta_vendorimage"
           echo "=== MULAI BUILD: $TARGETS ($(date -u)) ==="
           set -o pipefail
           if ! mka $TARGETS -j$JOBS 2>&1 | tee build.log; then
@@ -558,7 +562,7 @@ jobs:
         if: success()
         run: |
           cd ~/android/evox/out/target/product/X6840
-          required="system.img system_ext.img product.img vbmeta.img"
+          required="system.img system_ext.img product.img vendor.img vbmeta.img vbmeta_system.img vbmeta_vendor.img"
           fail=0
           for f in $required; do
             if [ ! -s "$f" ]; then
@@ -568,17 +572,17 @@ jobs:
               printf '    OK  : %-20s %s bytes\n' "$f" "$(stat -c%s "$f")"
             fi
           done
-          for f in vbmeta*.img; do
-            if [ ! -s "$f" ]; then
-              echo "!! MISSING / kosong: $f"
-              fail=1
-            fi
-          done
           if [ "$fail" != "0" ]; then
             echo ">>> VALIDASI IMAGE GAGAL"
             ls -lh . || true
             exit 1
           fi
+
+          # Validasi filesystem
+          for f in system.img system_ext.img product.img vendor.img; do
+            fs=$(file "$f" | grep -oE 'erofs|ext4' | head -1)
+            echo "    FS  : $f -> ${fs:-unknown}"
+          done
 
           AVBTOOL=~/android/evox/external/avb/avbtool
           if [ -f "$AVBTOOL" ]; then
@@ -601,6 +605,7 @@ jobs:
             /home/runner/android/evox/out/target/product/X6840/system.img
             /home/runner/android/evox/out/target/product/X6840/system_ext.img
             /home/runner/android/evox/out/target/product/X6840/product.img
+            /home/runner/android/evox/out/target/product/X6840/vendor.img
             /home/runner/android/evox/out/target/product/X6840/vbmeta*.img
           if-no-files-found: error
           retention-days: 14

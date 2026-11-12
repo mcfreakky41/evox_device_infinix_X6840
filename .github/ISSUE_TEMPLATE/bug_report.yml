@@ -1,0 +1,74 @@
+name: Bug Report
+description: File a bug report
+title: "[Bug]: "
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Terima kasih sudah melapor bug! Mohon isi template ini se lengkap mungkin.
+
+  - type: input
+    id: build_number
+    attributes:
+      label: Build Number
+      description: "Nomor build (misal: run #5 dari GitHub Actions)"
+      placeholder: "run #5"
+    validations:
+      required: true
+
+  - type: input
+    id: lunch_target
+    attributes:
+      label: Lunch Target
+      description: "Target lunch yang dipakai"
+      placeholder: "evolution_X6840-bp4a-userdebug"
+    validations:
+      required: true
+
+  - type: input
+    id: evox_branch
+    attributes:
+      label: Evolution X Branch
+      description: "Branch yang digunakan (bka, cnb, dll)"
+      placeholder: "bka"
+    validations:
+      required: true
+
+  - type: textarea
+    id: build_log
+    attributes:
+      label: Build Log / Error
+      description: "Paste error log di sini (gunakan code block jika panjang)"
+      render: shell
+      placeholder: |
+        error: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: device_info
+    attributes:
+      label: Device Info
+      description: "Informasi device (opsional)"
+      placeholder: |
+        Model: Infinix Smart 20 (X6840)
+        Slot aktif: _a
+        Firmware stok: X6840-16.3.0.140SP09
+        Root: Magisk 30.7
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: Sudah coba clean build (hapus out/ dan rebuild)
+          required: false
+        - slot aktif sudah dicek (fastboot getvar current-slot)
+          required: false
+        - backup partisi stok sudah dilakukan
+          required: false
+        - wipe data (fastboot erase userdata) sudah dilakukan sebelum boot
+          required: false

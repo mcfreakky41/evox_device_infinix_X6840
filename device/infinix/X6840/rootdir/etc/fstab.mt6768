@@ -1,27 +1,27 @@
 # Copyright (C) 2026 The LineageOS Project
 # SPDX-License-Identifier: Apache-2.0
 #
-# Infinix Smart 20 (X6840) — mt6768 fstab (ext4 build)
+# Infinix Smart 20 (X6840) — mt6768 fstab (EROF build)
 # Based on stock /vendor/etc/fstab.mt6768
 
 # --- Logical (dynamic) partitions in super ---
-system /system ext4 ro wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
-system_ext /system_ext ext4 ro wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
-vendor /vendor ext4 ro wait,slotselect,avb=vbmeta_vendor,logical,first_stage_mount
-product /product ext4 ro wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
-odm /odm ext4 ro wait,slotselect,avb=vbmeta_vendor,logical,first_stage_mount
-vendor_dlkm /vendor_dlkm ext4 ro wait,slotselect,avb=vbmeta_vendor,logical,first_stage_mount
-odm_dlkm /odm_dlkm ext4 ro wait,slotselect,avb=vbmeta_vendor,logical,first_stage_mount
-system_dlkm /system_dlkm ext4 ro wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
+system /system erofs ro wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
+system_ext /system_ext erofs ro wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
+vendor /vendor erofs ro wait,slotselect,avb=vbmeta_vendor,logical,first_stage_mount
+product /product erofs ro wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
+odm /odm erofs ro wait,slotselect,avb=vbmeta_vendor,logical,first_stage_mount
+vendor_dlkm /vendor_dlkm erofs ro wait,slotselect,avb=vbmeta_vendor,logical,first_stage_mount
+odm_dlkm /odm_dlkm erofs ro wait,slotselect,avb=vbmeta_vendor,logical,first_stage_mount
+system_dlkm /system_dlkm erofs ro wait,slotselect,avb=vbmeta_system,logical,first_stage_mount
 
 # --- Transsion logical partitions (super) ---
-tr_region /tr_region ext4 ro wait,slotselect,logical,first_stage_mount,nofail
-tr_company /tr_company ext4 ro wait,slotselect,logical,first_stage_mount,nofail
-tr_carrier /tr_carrier ext4 ro wait,slotselect,logical,first_stage_mount,nofail
-tr_product /tr_product ext4 ro wait,slotselect,logical,first_stage_mount,nofail
-tr_preload /tr_preload ext4 ro wait,slotselect,logical,first_stage_mount,nofail
-tr_overlayfs /tr_overlayfs ext4 ro wait,slotselect,logical,first_stage_mount,nofail
-tr_manifest /mnt/vendor/tr_manifest ext4 ro wait,slotselect,logical,first_stage_mount,nofail
+tr_region /tr_region erofs ro wait,slotselect,logical,first_stage_mount,nofail
+tr_company /tr_company erofs ro wait,slotselect,logical,first_stage_mount,nofail
+tr_carrier /tr_carrier erofs ro wait,slotselect,logical,first_stage_mount,nofail
+tr_product /tr_product erofs ro wait,slotselect,logical,first_stage_mount,nofail
+tr_preload /tr_preload erofs ro wait,slotselect,logical,first_stage_mount,nofail
+tr_overlayfs /tr_overlayfs erofs ro wait,slotselect,logical,first_stage_mount,nofail
+tr_manifest /mnt/vendor/tr_manifest erofs ro wait,slotselect,logical,first_stage_mount,nofail
 
 # --- Metadata & userdata ---
 /dev/block/by-name/metadata /metadata f2fs noatime,nosuid,nodev,discard wait,check,formattable,first_stage_mount

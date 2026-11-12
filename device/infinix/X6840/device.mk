@@ -69,9 +69,12 @@ PRODUCT_BUILD_SUPER_PARTITION := true
 # ============================================================
 # Filesystem / fstab
 # ============================================================
-# SATU-SATUNYA mekanisme pemasangan fstab: PRODUCT_COPY_FILES di sini.
-# fstab harus berasal dari device tree (bukan vendor blobs) agar flag AVB
-# hasil perbaikan tidak tertimpa versi stok.
+# fstab untuk first-stage mount HARUS berada di ramdisk (vendor_boot ramdisk)
+# Device ini pakai vendor_boot (header v4), jadi fstab masuk ke vendor_boot ramdisk
+PRODUCT_COPY_FILES += \
+    $(DEVICE_PATH)/rootdir/etc/fstab.mt6768:$(TARGET_COPY_OUT_VENDOR_RAMDISK)/first_stage_ramdisk/fstab.mt6768
+
+# Copy juga ke vendor/etc untuk compatibility (non-first-stage mount)
 PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/rootdir/etc/fstab.mt6768:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.mt6768
 
