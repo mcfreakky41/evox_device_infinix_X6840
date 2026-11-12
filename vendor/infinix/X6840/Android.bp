@@ -1,0 +1,8 @@
+//
+// Copyright (C) 2026 The LineageOS Project
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
+// APK stok /vendor dipasang via PRODUCT_COPY_FILES di X6840-vendor.mk
+// (prebuilt_any tidak diizinkan di .bp file oleh PixelOS sixteen build system).

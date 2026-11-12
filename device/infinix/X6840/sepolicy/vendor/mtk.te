@@ -1,0 +1,19 @@
+# Infinix X6840 (Smart 20) - vendor sepolicy
+# SPDX-License-Identifier: Apache-2.0
+#
+# Catatan Treble:
+#  - properti milik /vendor wajib memakai makro vendor_internal_prop
+#    (bukan `type ..., property_type` polos),
+#  - service /vendor hanya boleh di-find oleh app bila bertipe
+#    app_api_service (otherwise neverallow),
+#  - coredomain (mis. system_server) tidak boleh menulis properti vendor,
+#  - aturan `vendor_init vendor_file` sudah ada di AOSP, jadi tidak diulang.
+
+# Hapus definisi tipe yang tidak digunakan (vendor_mtk_prop, transsion_service)
+# karena tidak ada property_contexts/service_contexts yang mendukungnya.
+# Tipe-tipe ini didefinisikan tanpa referensi ke prop atau service yang nyata,
+# sehingga hanya menambahkan risiko neverallow violation saat build.
+
+# Jika di masa depan diperlukan, tambahkan entri yang sesuai di:
+# - device/infinix/X6840/sepolicy/vendor/property_contexts
+# - device/infinix/X6840/sepolicy/vendor/service_contexts
